@@ -1,5 +1,5 @@
-const API = 'http://localhost:5000/api';
-const SOCKET_URL = 'http://localhost:5000';
+const API = 'https://taskflow-backend-yk00.onrender.com/api';
+const SOCKET_URL = 'https://taskflow-backend-yk00.onrender.com';
 
 // 👇 Ab TEAM_ID static nahi hai, localStorage se aayega
 let TEAM_ID = localStorage.getItem('activeTeamId') || null; 
