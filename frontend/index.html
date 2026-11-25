@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <meta name="theme-color" content="#6366f1" />
+  <title>TaskFlow Pro</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- TOAST -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- AUTH -->
+  <div id="authScreen" class="auth-screen">
+    <div class="auth-card">
+      <div class="auth-logo">🚀</div>
+      <h1>TaskFlow <span class="pro">PRO</span></h1>
+      <p class="sub">Collaborate · Organize · Achieve</p>
+      <div class="tabs">
+        <button id="tabLogin" class="active">Login</button>
+        <button id="tabRegister">Register</button>
+      </div>
+      <form id="authForm">
+        <input id="nameField" type="text" placeholder="Full Name" style="display:none" autocomplete="name" />
+        <input id="emailField" type="email" placeholder="Email" required autocomplete="email" />
+        <input id="passField" type="password" placeholder="Password" required autocomplete="current-password" />
+        <div id="passStrength" class="pass-strength"></div>
+        <button type="submit" class="btn-primary">
+          <span id="authBtnText">Login</span> →
+        </button>
+      </form>
+      <p id="authError" class="error"></p>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="appScreen" class="app" style="display:none">
+    <aside class="sidebar">
+      <div class="logo-row">
+        <h2>🚀 TaskFlow <span class="pro">PRO</span></h2>
+        <button id="themeToggle" class="icon-btn" title="Toggle theme">🌙</button>
+      </div>
+      <div class="user-badge" id="userBadge"></div>
+      
+      <!-- 👇 TEAM SELECTOR ADDED HERE 👇 -->
+      <div id="teamSelector" class="team-selector" style="display:none; padding: 10px; background: var(--bg); border-radius: 10px; margin-bottom: 10px;">
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom: 5px;">Current Team</p>
+        <strong id="currentTeamName" style="font-size:14px; display:block; margin-bottom:4px;">Alpha Team</strong>
+        <p style="font-size:10px; color:var(--text-muted); margin-bottom:8px;">ID: <span id="teamIdDisplay"></span></p>
+        <button class="btn-secondary" style="width:100%; padding:5px; font-size:12px;" onclick="openTeamModal()">Switch / Join Team</button>
+      </div>
+      <!-- 👆 TEAM SELECTOR END 👆 -->
+
+      <nav>
+        <button class="nav-btn active" data-tab="board"><span>📋</span> Board</button>
+        <button class="nav-btn" data-tab="analytics"><span>📊</span> Analytics</button>
+        <button class="nav-btn" data-tab="team"><span>👥</span> Team</button>
+        <button class="nav-btn" data-tab="chat"><span>💬</span> Chat</button>
+        <button class="nav-btn" data-tab="ai"><span>🤖</span> AI Assistant</button>
+        <button class="nav-btn" data-tab="contact"><span>✉️</span> Contact</button>
+      </nav>
+      <div class="kbd-hints">
+        <div class="hint"><kbd>N</kbd> New task</div>
+        <div class="hint"><kbd>/</kbd> Search</div>
+        <div class="hint"><kbd>Esc</kbd> Close</div>
+      </div>
+      <button id="logoutBtn" class="btn-logout">Logout</button>
+    </aside>
+
+    <main class="content">
+      <!-- BOARD -->
+      <section id="tab-board" class="tab-panel active">
+        <div class="panel-header">
+          <div>
+            <h3>Task Board</h3>
+            <p class="muted" id="boardMeta">Loading...</p>
+          </div>
+          <div class="header-actions">
+            <input id="searchInput" class="search-input" placeholder="🔍 Search tasks..." />
+            <button id="addTaskBtn" class="btn-primary">+ New Task <kbd>N</kbd></button>
+          </div>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="board">
+          <div class="column" data-status="todo">
+            <h4>📌 To Do <span class="count" id="count-todo">0</span></h4>
+            <div class="cards" id="col-todo" data-status="todo"></div>
+          </div>
+          <div class="column" data-status="progress">
+            <h4>⚡ In Progress <span class="count" id="count-progress">0</span></h4>
+            <div class="cards" id="col-progress" data-status="progress"></div>
+          </div>
+          <div class="column" data-status="done">
+            <h4>✅ Done <span class="count" id="count-done">0</span></h4>
+            <div class="cards" id="col-done" data-status="done"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ANALYTICS -->
+      <section id="tab-analytics" class="tab-panel">
+        <div class="panel-header"><h3>📊 Analytics</h3></div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Total Tasks</div></div>
+          <div class="stat-card"><div class="stat-value" id="statDone">0</div><div class="stat-label">Completed</div></div>
+          <div class="stat-card"><div class="stat-value" id="statProgress">0</div><div class="stat-label">In Progress</div></div>
+          <div class="stat-card"><div class="stat-value" id="statOverdue">0</div><div class="stat-label">Overdue</div></div>
+        </div>
+        <div class="chart-card">
+          <h4>Task Distribution</h4>
+          <canvas id="chartPie" width="300" height="300"></canvas>
+        </div>
+        <div class="chart-card">
+          <h4>Priority Breakdown</h4>
+          <canvas id="chartBar" width="600" height="200"></canvas>
+        </div>
+      </section>
+
+      <!-- TEAM -->
+      <section id="tab-team" class="tab-panel">
+        <div class="panel-header"><h3>👥 Team Members</h3></div>
+        <div id="teamGrid" class="team-grid"></div>
+      </section>
+
+      <!-- CHAT -->
+      <section id="tab-chat" class="tab-panel">
+        <div class="panel-header"><h3>💬 Team Chat</h3></div>
+        <div class="chat-box">
+          <div id="chatMessages" class="chat-messages"></div>
+          <div class="chat-input-row">
+            <input id="chatInput" placeholder="Type a message..." />
+            <button id="sendChatBtn" class="btn-primary">Send</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI -->
+      <section id="tab-ai" class="tab-panel">
+        <div class="panel-header"><h3>🤖 AI Assistant <span class="badge-free">FREE</span></h3></div>
+        <div class="chat-box">
+          <div id="aiMessages" class="chat-messages">
+            <div class="msg bot">Hi! 👋 Ask me about **prioritize**, **sprint**, **productivity**, **focus**, **organize**, or **team**.</div>
+          </div>
+          <div class="quick-prompts">
+            <button onclick="quickPrompt('How do I prioritize tasks?')">Prioritize</button>
+            <button onclick="quickPrompt('Plan a sprint')">Sprint</button>
+            <button onclick="quickPrompt('Productivity tips')">Productivity</button>
+            <button onclick="quickPrompt('Focus techniques')">Focus</button>
+          </div>
+          <div class="chat-input-row">
+            <input id="aiInput" placeholder="Ask AI anything..." />
+            <button id="sendAiBtn" class="btn-primary">Send</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTACT -->
+      <section id="tab-contact" class="tab-panel">
+        <div class="panel-header"><h3>✉️ Contact Support</h3></div>
+        <form id="contactForm" class="contact-form">
+          <input id="cName" placeholder="Your Name" required />
+          <input id="cEmail" type="email" placeholder="Your Email" required />
+          <input id="cSubject" placeholder="Subject" required />
+          <textarea id="cMessage" placeholder="Your message..." rows="5" required></textarea>
+          <button type="submit" class="btn-primary">Send Message</button>
+          <p id="contactStatus" class="status"></p>
+        </form>
+      </section>
+    </main>
+
+    <!-- MOBILE BOTTOM NAV -->
+    <nav class="bottom-nav">
+      <button class="bn-btn active" data-tab="board">📋<span>Board</span></button>
+      <button class="bn-btn" data-tab="analytics">📊<span>Stats</span></button>
+      <button class="bn-btn" data-tab="chat">💬<span>Chat</span></button>
+      <button class="bn-btn" data-tab="ai">🤖<span>AI</span></button>
+    </nav>
+  </div>
+
+  <!-- TASK MODAL -->
+  <div id="taskModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header"><h3>New Task</h3><button class="icon-btn" onclick="closeTaskModal()">✕</button></div>
+      <input id="tTitle" placeholder="Task title *" />
+      <textarea id="tDesc" placeholder="Description" rows="3"></textarea>
+      <div class="modal-row">
+        <select id="tPriority">
+          <option value="low">🟢 Low</option>
+          <option value="medium" selected>🟡 Medium</option>
+          <option value="high">🔴 High</option>
+        </select>
+        <select id="tStatus">
+          <option value="todo">To Do</option>
+          <option value="progress">In Progress</option>
+          <option value="done">Done</option>
+        </select>
+      </div>
+      <div class="modal-row">
+        <input id="tTags" placeholder="Tags (comma separated)" />
+        <input id="tDue" type="date" />
+      </div>
+      <div class="modal-actions">
+        <button onclick="closeTaskModal()" class="btn-secondary">Cancel</button>
+        <button id="saveTask" class="btn-primary">Create Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEAM MODAL -->
+  <div id="teamModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header"><h3>Manage Team</h3><button class="icon-btn" onclick="closeTeamModal()">✕</button></div>
+      <div style="margin-bottom: 20px;">
+        <h4 style="margin-bottom: 8px;">Create New Team</h4>
+        <input id="newTeamName" placeholder="Team Name (e.g. Design Squad)" />
+        <button class="btn-primary" style="width:100%; margin-top:8px;" onclick="createTeam()">Create & Switch</button>
+      </div>
+      <hr style="border-color: var(--border); margin: 15px 0;" />
+      <div>
+        <h4 style="margin-bottom: 8px;">Join Existing Team</h4>
+        <input id="joinTeamId" placeholder="Enter Team ID (e.g. FLOW-XYZ123)" />
+        <button class="btn-secondary" style="width:100%; margin-top:8px;" onclick="joinTeam()">Join Team</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
